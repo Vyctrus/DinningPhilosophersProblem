@@ -66,7 +66,7 @@ namespace start3
         static PhilosopherState[] states = new PhilosopherState[5];
         static Mutex[] states_mutex = new Mutex[5];
 
-        static bool[] forksUsage = new bool[5];
+        static int[] forksUsage = new int[5];
         static Mutex[] forksUsageMutex = new Mutex[5];
 
         static List<SemaphoreSlim> forksS = new List<SemaphoreSlim>();
@@ -86,7 +86,7 @@ namespace start3
                 states_mutex[i] = new Mutex();
 
                 //state labels for froks
-                forksUsage[i] = false;
+                forksUsage[i] = 1000;
                 forksUsageMutex[i] = new Mutex();
                 hungryArray[i] = i;
                 //mut.WaitOne();
@@ -257,13 +257,29 @@ namespace start3
         private void updateForks(int index, Label forkLabel)
         {
             forksUsageMutex[index].WaitOne();
-            if (forksUsage[index])
+            switch (forksUsage[index])
             {
-                forkLabel.Text = "in usage";
-            }
-            else
-            {
-                forkLabel.Text = "not in usage";
+                case 1000:
+                    forkLabel.Text = "not in usage";
+                    break;
+                case 0:
+                    forkLabel.Text = "0 uses it";
+                    break;
+                case 1:
+                    forkLabel.Text = "1 uses it";
+                    break;
+                case 2:
+                    forkLabel.Text = "2 uses it";
+                    break;
+                case 3:
+                    forkLabel.Text = "3 uses it";
+                    break;
+                case 4:
+                    forkLabel.Text = "4 uses it";
+                    break;
+                default:
+                    forkLabel.Text = "fork error, not possible";
+                    break;
             }
             forksUsageMutex[index].ReleaseMutex();
         }
@@ -328,10 +344,10 @@ namespace start3
         static private void eating()
         {
             forksUsageMutex[getLeftForkId()].WaitOne();
-            forksUsage[getLeftForkId()] = true;
+            forksUsage[getLeftForkId()] = getPhilosopherId();
             forksUsageMutex[getLeftForkId()].ReleaseMutex();
             forksUsageMutex[getRightForkId()].WaitOne();
-            forksUsage[getRightForkId()] = true;
+            forksUsage[getRightForkId()] = getPhilosopherId();
             forksUsageMutex[getRightForkId()].ReleaseMutex();
 
             int temp = 0;
@@ -358,10 +374,10 @@ namespace start3
             pb_data_mutex[indexOfCurrThread()].ReleaseMutex();
 
             forksUsageMutex[getLeftForkId()].WaitOne();
-            forksUsage[getLeftForkId()] = false;
+            forksUsage[getLeftForkId()] = 1000;
             forksUsageMutex[getLeftForkId()].ReleaseMutex();
             forksUsageMutex[getRightForkId()].WaitOne();
-            forksUsage[getRightForkId()] = false;
+            forksUsage[getRightForkId()] = 1000;
             forksUsageMutex[getRightForkId()].ReleaseMutex();
         }
         //TODO: remove this, change evrywhere getPhilosopherId()
@@ -402,7 +418,7 @@ namespace start3
 
             //endThreads joins all philosophers threads
             //program.EndThreads();
-            Console.ReadKey();
+            //Console.ReadKey();
         }
 
 
